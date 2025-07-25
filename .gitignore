@@ -90,3 +90,4 @@ sw.*
 *.swp
 
 src/secrets.ts
+src/elven-reminder-firebase-adminsdk.json
