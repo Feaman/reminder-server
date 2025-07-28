@@ -2,12 +2,15 @@ import cors from 'cors'
 import express, { NextFunction, Request, Response } from 'express'
 import http from 'http'
 import jwt from 'jsonwebtoken'
+import Helper from './helpers/date'
 import BaseModel from './models/base'
+import ReminderModel from './models/reminder'
 import StatusModel from './models/status'
 import UserModel from './models/user'
 import BaseService from './services/base'
 import RequestService from './services/request'
 import UsersService from './services/users'
+const crypto = require('crypto')
 const multer  = require('multer')
 const PORT = 3022
 const storage = new WeakMap()
@@ -68,12 +71,12 @@ function checkAccess(request: Request, response: Response, next: NextFunction) {
 
 
 async function getData(currentUser: UserModel, isEmpty = false, isAuth = false): Promise<any> {
-  let entities: BaseModel[] = []
+  let reminders: BaseModel[] = []
   if (!isEmpty) {
     const data = await Promise.all([
       BaseService.getList('Reminder', activeStatus, currentUser),
     ])
-    entities = data[0]
+    reminders = data[0]
   }
 
   const userData = {
@@ -87,7 +90,7 @@ async function getData(currentUser: UserModel, isEmpty = false, isAuth = false):
 
   const result: { [key: string]: BaseModel[] | typeof userData | string } = {
     statuses,
-    entities,
+    reminders,
     user: userData,
   }
 
@@ -172,6 +175,28 @@ app.post(
     try {
       const currentUser = storage.get(request)
       const reminder = await BaseService.create('Reminder', request.body, currentUser)
+      
+      // // Counter
+      // const uuid = crypto.randomBytes(16).toString('hex')
+      // const counterData = new CounterModel({
+      //   id: 0,
+      //   name: `${reminder.id}-${uuid}`,
+      //   title: request.body.title,
+      //   dateTime: request.body.startDateTime,
+      //   isSystem: 1,
+      //   statusId: 0,
+      //   created: '',
+      //   updated: '',
+      //   deleted: '',
+      // })
+      // const counter = await BaseService.create('Counter', counterData, currentUser)
+      // if (!counter) {
+      //   throw new Error('Ошибка при создании счётчика')
+      // }
+
+      // reminder.counterId = counter.id
+      // await BaseService.update('Event', String(reminder.id), reminder, currentUser)
+
       return response.send(reminder)
     } catch (error) {
       return response.status(400).send({ statusCode: 400, message: (error as Error).message })
@@ -256,3 +281,39 @@ app.delete(
     }
   },
 )
+
+const secondInMilliseconds = 1000
+setInterval(async() => {
+  const reminders = await BaseService.getList('Reminder', activeStatus, undefined, { isNotified: 0 }) as ReminderModel[]
+  let secondsOffset
+  reminders.forEach(async (reminder) => {
+    if (!reminder.isNotified) {
+      const startDate = new Date(reminder.dateTime)
+      secondsOffset = 5000
+
+      const secondsDifference = startDate.getTime() - new Date().getTime()
+      if (secondsDifference > 0 && secondsDifference < secondsOffset * secondInMilliseconds) {
+        const user = await BaseService.findByField('User', 'id', reminder.userId || '') as UserModel
+        if (user?.pushTokens) {
+          const pushTokens = JSON.parse(user.pushTokens)
+          pushTokens.forEach((pushToken: string) => {
+            admin.messaging().send({
+              token: pushToken,
+              data: {
+                title: reminder.title,
+                body: `Событие начнётся ${Helper.formatRussianDateTime(startDate)}.`,
+                userId: String(user.id),
+                entityId: String(reminder.id),
+                entity: 'Reminder',
+                // counterName: counter.name,
+              },
+            }) 
+          })
+          reminder.isNotified = true
+          await BaseService.update('Reminder', String(reminder.id), reminder, user)
+        }
+      }
+    }
+  })
+}, 5000)
+

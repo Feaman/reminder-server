@@ -2,20 +2,19 @@ import { IBaseModel } from './base'
 import BaseActiveModel, { IBaseActiveModel } from './base-active'
 
 export interface IReminder extends IBaseActiveModel {
-  text: string,
+  title: string,
   dateTime: string
-  isTimeSet: string
-  photoPath: string
-  isHidden: boolean
+  isNotified: boolean
   statusId: number
   categoryId: number
 }
 
 export default class ReminderModel extends BaseActiveModel implements IBaseModel {
-  text = ''
+  title = ''
   dateTime = ''
   isTimeSet = ''
   photoPath = ''
+  isNotified = false
   isHidden = false
   statusId = 0
   categoryId = 0
@@ -24,6 +23,7 @@ export default class ReminderModel extends BaseActiveModel implements IBaseModel
   static writeFields = [
     'title',
     'dateTime',
+    'isNotified',
     'userId',
     'statusId',
   ]
@@ -37,7 +37,8 @@ export default class ReminderModel extends BaseActiveModel implements IBaseModel
 
   static rules = {
     id: 'numeric',
-    text: 'required|string|max:65655',
+    title: 'required|string|max:65655',
+    isNotified: 'boolean',
     dateTime: 'required|string|max:55',
   }
 
