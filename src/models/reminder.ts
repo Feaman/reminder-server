@@ -39,13 +39,12 @@ export default class ReminderModel extends BaseActiveModel implements IBaseModel
     id: 'numeric',
     title: 'required|string|max:65655',
     isNotified: 'boolean',
-    dateTime: 'required|string|max:55',
+    dateTime: 'required|date',
   }
 
   constructor (data: IReminder) {
     super(data)
 
     this.assignFields(data)
-    this.dateTime = (typeof data.dateTime === 'string' ? data.dateTime : (data.dateTime as Date).toISOString())
   }
 }

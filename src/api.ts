@@ -10,17 +10,16 @@ import UserModel from './models/user'
 import BaseService from './services/base'
 import RequestService from './services/request'
 import UsersService from './services/users'
+
 const crypto = require('crypto')
 const multer  = require('multer')
 const PORT = 3022
 const storage = new WeakMap()
 const fs = require('fs')
 const privateKey = fs.readFileSync('private.pem', 'utf8')
-
-interface MulterRequest extends Request { file: { path: string } }
-
 const app = express()
 const filesPath = 'files'
+
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 app.use('/files', express.static(filesPath))
@@ -211,6 +210,7 @@ app.put(
     try {
       const { reminderId } = request.params
       const currentUser = storage.get(request)
+      request.body.isNotified = 0
       const reminder = await BaseService.update('Reminder', reminderId, request.body, currentUser)
       return response.send(reminder)
     } catch (error) {
@@ -289,7 +289,7 @@ setInterval(async() => {
   reminders.forEach(async (reminder) => {
     if (!reminder.isNotified) {
       const startDate = new Date(reminder.dateTime)
-      secondsOffset = 5000
+      secondsOffset = 5
 
       const secondsDifference = startDate.getTime() - new Date().getTime()
       if (secondsDifference > 0 && secondsDifference < secondsOffset * secondInMilliseconds) {
@@ -316,4 +316,3 @@ setInterval(async() => {
     }
   })
 }, 5000)
-

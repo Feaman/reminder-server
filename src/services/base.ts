@@ -144,6 +144,10 @@ export default class BaseService {
     }
     entity.statusId = activeStatus.id
 
+    if (user) {
+      entity.userId = user.id
+    }
+
     await this.save(entity)
 
     // Get fresh data
