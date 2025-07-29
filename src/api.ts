@@ -174,28 +174,6 @@ app.post(
     try {
       const currentUser = storage.get(request)
       const reminder = await BaseService.create('Reminder', request.body, currentUser)
-      
-      // // Counter
-      // const uuid = crypto.randomBytes(16).toString('hex')
-      // const counterData = new CounterModel({
-      //   id: 0,
-      //   name: `${reminder.id}-${uuid}`,
-      //   title: request.body.title,
-      //   dateTime: request.body.startDateTime,
-      //   isSystem: 1,
-      //   statusId: 0,
-      //   created: '',
-      //   updated: '',
-      //   deleted: '',
-      // })
-      // const counter = await BaseService.create('Counter', counterData, currentUser)
-      // if (!counter) {
-      //   throw new Error('Ошибка при создании счётчика')
-      // }
-
-      // reminder.counterId = counter.id
-      // await BaseService.update('Event', String(reminder.id), reminder, currentUser)
-
       return response.send(reminder)
     } catch (error) {
       return response.status(400).send({ statusCode: 400, message: (error as Error).message })
@@ -211,6 +189,11 @@ app.put(
       const { reminderId } = request.params
       const currentUser = storage.get(request)
       request.body.isNotified = 0
+      console.log(new Date(), new Date(request.body.dateTime))
+      if (new Date() < new Date(request.body.dateTime)) {
+        console.log('CHEKED = 0')
+        request.body.isChecked = 0
+      }
       const reminder = await BaseService.update('Reminder', reminderId, request.body, currentUser)
       return response.send(reminder)
     } catch (error) {

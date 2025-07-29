@@ -14,6 +14,7 @@ export default class ReminderModel extends BaseActiveModel implements IBaseModel
   dateTime = ''
   isTimeSet = ''
   photoPath = ''
+  isChecked = false
   isNotified = false
   isHidden = false
   statusId = 0
@@ -24,6 +25,7 @@ export default class ReminderModel extends BaseActiveModel implements IBaseModel
     'title',
     'dateTime',
     'isNotified',
+    'isChecked',
     'userId',
     'statusId',
   ]
@@ -39,6 +41,7 @@ export default class ReminderModel extends BaseActiveModel implements IBaseModel
     id: 'numeric',
     title: 'required|string|max:65655',
     isNotified: 'boolean',
+    isChecked: 'boolean',
     dateTime: 'required|date',
   }
 
