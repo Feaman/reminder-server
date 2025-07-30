@@ -187,8 +187,8 @@ app.put(
     try {
       const { reminderId } = request.params
       const currentUser = storage.get(request)
-      request.body.isNotified = 0
       if (new Date() < new Date(request.body.dateTime)) {
+        request.body.isNotified = 0
         request.body.isChecked = 0
       }
       const reminder = await BaseService.update('Reminder', reminderId, request.body, currentUser)
@@ -268,7 +268,7 @@ setInterval(async() => {
   let secondsOffset
   reminders.forEach(async (reminder) => {
     const startDate = new Date(reminder.dateTime)
-    secondsOffset = 5
+    secondsOffset = 300
 
     const secondsDifference = startDate.getTime() - new Date().getTime()
     if (secondsDifference > 0 && secondsDifference < secondsOffset * secondInMilliseconds) {
