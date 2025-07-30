@@ -16,7 +16,6 @@ export default class ReminderModel extends BaseActiveModel implements IBaseModel
   photoPath = ''
   isChecked = false
   isNotified = false
-  isHidden = false
   statusId = 0
   categoryId = 0
 

@@ -266,7 +266,7 @@ export default class BaseService {
 
     return new Promise((resolve, reject) => {
       this.pool.query({
-        sql: `select * from ${Model.tableName} where ${fieldName} = ?${user ? ' and userId = ?' : ''}${status ? ' and statusId = ?' : ''}`,
+        sql: `select id, ${Model.readFields.join(',')} from ${Model.tableName} where ${fieldName} = ?${user ? ' and userId = ?' : ''}${status ? ' and statusId = ?' : ''}`,
         values,
       },
       (error: MysqlError, data: IBaseModel[]) => {
