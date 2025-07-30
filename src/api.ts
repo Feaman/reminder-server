@@ -187,7 +187,9 @@ app.put(
     try {
       const { reminderId } = request.params
       const currentUser = storage.get(request)
-      if (new Date() < new Date(request.body.dateTime)) {
+      const incomingDateTime = new Date(request.body.dateTime)
+      const existingReminder = await BaseService.findByField('Reminder', 'id', reminderId, activeStatus, currentUser) as ReminderModel
+      if (new Date(existingReminder.dateTime) < incomingDateTime) {
         request.body.isNotified = 0
         request.body.isChecked = 0
       }
