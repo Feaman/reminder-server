@@ -2,7 +2,6 @@ import cors from 'cors'
 import express, { NextFunction, Request, Response } from 'express'
 import http from 'http'
 import jwt from 'jsonwebtoken'
-import Helper from './helpers/date'
 import BaseModel from './models/base'
 import ReminderModel from './models/reminder'
 import StatusModel from './models/status'
@@ -189,9 +188,7 @@ app.put(
       const { reminderId } = request.params
       const currentUser = storage.get(request)
       request.body.isNotified = 0
-      console.log(new Date(), new Date(request.body.dateTime))
       if (new Date() < new Date(request.body.dateTime)) {
-        console.log('CHEKED = 0')
         request.body.isChecked = 0
       }
       const reminder = await BaseService.update('Reminder', reminderId, request.body, currentUser)
@@ -270,31 +267,28 @@ setInterval(async() => {
   const reminders = await BaseService.getList('Reminder', activeStatus, undefined, { isNotified: 0 }) as ReminderModel[]
   let secondsOffset
   reminders.forEach(async (reminder) => {
-    if (!reminder.isNotified) {
-      const startDate = new Date(reminder.dateTime)
-      secondsOffset = 5
+    const startDate = new Date(reminder.dateTime)
+    secondsOffset = 5
 
-      const secondsDifference = startDate.getTime() - new Date().getTime()
-      if (secondsDifference > 0 && secondsDifference < secondsOffset * secondInMilliseconds) {
-        const user = await BaseService.findByField('User', 'id', reminder.userId || '') as UserModel
-        if (user?.pushTokens) {
-          const pushTokens = JSON.parse(user.pushTokens)
-          pushTokens.forEach((pushToken: string) => {
-            admin.messaging().send({
-              token: pushToken,
-              data: {
-                title: reminder.title,
-                body: `Событие начнётся ${Helper.formatRussianDateTime(startDate)}.`,
-                userId: String(user.id),
-                entityId: String(reminder.id),
-                entity: 'Reminder',
-                // counterName: counter.name,
-              },
-            }) 
-          })
-          reminder.isNotified = true
-          await BaseService.update('Reminder', String(reminder.id), reminder, user)
-        }
+    const secondsDifference = startDate.getTime() - new Date().getTime()
+    if (secondsDifference > 0 && secondsDifference < secondsOffset * secondInMilliseconds) {
+      const user = await BaseService.findByField('User', 'id', reminder.userId || '') as UserModel
+      if (user?.pushTokens) {
+        const pushTokens = JSON.parse(user.pushTokens)
+        pushTokens.forEach((pushToken: string) => {
+          admin.messaging().send({
+            token: pushToken,
+            data: {
+              title: reminder.title,
+              dateTime: reminder.dateTime.toString(),
+              userId: String(user.id),
+              entityId: String(reminder.id),
+              entity: 'Reminder',
+            },
+          }) 
+        })
+        reminder.isNotified = true
+        await BaseService.update('Reminder', String(reminder.id), reminder, user)
       }
     }
   })
