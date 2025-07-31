@@ -200,6 +200,23 @@ app.put(
   },
 )
 
+app.put(
+  '/reminders/check/:reminderId',
+  checkAccess,
+  async (request: Request, response: Response) => {
+    try {
+      const { reminderId } = request.params
+      const currentUser = storage.get(request)
+      const existingReminder = await BaseService.findByField('Reminder', 'id', reminderId, activeStatus, currentUser) as ReminderModel
+      existingReminder.isChecked = true
+      const reminder = await BaseService.update('Reminder', reminderId, existingReminder, currentUser)
+      return response.send(reminder)
+    } catch (error) {
+      return response.status(500).send({ statusCode: 500, message: (error as Error).message })
+    }
+  },
+)
+
 app.delete(
   '/reminders/:reminderId',
   checkAccess,
