@@ -3,7 +3,7 @@ import BaseActiveModel, { IBaseActiveModel } from './base-active'
 
 export interface IReminder extends IBaseActiveModel {
   title: string,
-  dateTime: string
+  dateTime: string | Date
   isNotified: boolean
   statusId: number
   categoryId: number
@@ -11,7 +11,7 @@ export interface IReminder extends IBaseActiveModel {
 
 export default class ReminderModel extends BaseActiveModel implements IBaseModel {
   title = ''
-  dateTime = ''
+  dateTime: string | Date = ''
   isTimeSet = ''
   photoPath = ''
   isChecked = false
