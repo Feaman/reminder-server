@@ -283,13 +283,12 @@ app.delete(
 const secondInMilliseconds = 1000
 setInterval(async() => {
   const reminders = await BaseService.getList('Reminder', activeStatus, undefined, { isNotified: 0 }) as ReminderModel[]
-  let secondsOffset
+  const SECONDS_OFFSET = 1
   reminders.forEach(async (reminder) => {
     const startDate = new Date(reminder.dateTime)
-    secondsOffset = 300
 
     const secondsDifference = startDate.getTime() - new Date().getTime()
-    if (secondsDifference > 0 && secondsDifference < secondsOffset * secondInMilliseconds) {
+    if (secondsDifference > 0 && secondsDifference < SECONDS_OFFSET * secondInMilliseconds) {
       const user = await BaseService.findByField('User', 'id', reminder.userId || '') as UserModel
       if (user?.pushTokens) {
         const pushTokens = JSON.parse(user.pushTokens)
